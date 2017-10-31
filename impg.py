@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import argparse, math, sys, logging, time
 from pysnptools.snpreader import Bed
-from src.estimation import *
+from src.impute import *
 
 title_str = """\
 @----------------------------------------------------------@
@@ -25,8 +25,11 @@ def main():
     args = get_command_line()
     init_log(args)
     argmap = check_command_line(args)
-    
-    print argmap
+
+    # run the imputation
+    impute(argmap['bfile'], argmap['sumstats'], argmap['window-size'],
+        argmap['buffer-size'], argmap['chrom'], argmap['min-maf'],
+        argmap['lambda'], argmap['ld-prune'], argmap['out'])   
 
     # end the log
     end_log()
@@ -98,6 +101,13 @@ def get_command_line():
 
     parser.add_argument('--lambda', dest='lambda', type=float,
         help='Regularization constant', default=0.1, required=False)
+
+    parser.add_argument('--min-maf', dest='min-maf', type=float,
+        help='Minimum minor allele frequency', default=0.01, required=False)
+
+    parser.add_argument('--ld-prune', dest='ld-prune', type=float,
+        help='Filter perfectly correlated typed SNPs (default |r| > 0.99)',
+        default=0.99, required=False)
 
     parser.add_argument('--out', dest='out', type=str,
         help='Output file name', required=True)

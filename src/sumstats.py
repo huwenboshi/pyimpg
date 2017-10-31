@@ -3,7 +3,7 @@ import pandas as pd
 import os, sys, gzip, logging
 
 # required columns for the summary stats file
-required = ['SNP', 'CHR', 'BP', 'A1', 'A2', 'Z', 'N']
+required = ['SNP', 'CHR', 'BP', 'A1', 'A2', 'Z']
 
 # magic bits to discern file type
 magic_dict = {
@@ -112,7 +112,7 @@ class SumStats(object):
                 if name == 'CHR' and val != chrom: break
                 if name == 'SNP' and val[0:2] != 'rs': break
                 if (name == 'A1' or name == 'A2') and len(val) != 1: break
-                if name == 'BP' or name == 'Z' or name == 'N': val = float(val)
+                if name == 'BP' or name == 'Z': val = float(val)
                 tmp[name] = val
             if len(tmp) == len(required):
                 for key in tmp:
@@ -147,8 +147,8 @@ class SumStats(object):
         # merge summstats and reference panel
         self.sumstats = self.sumstats.merge(refpanel_snpmap, on='SNP')
         self.sumstats = self.sumstats[['SNP', 'CHR', 'BP_y', 'A1_x',
-            'A2', 'Z', 'N']]
-        self.sumstats.columns = ['SNP', 'CHR', 'BP', 'A1', 'A2', 'Z', 'N']
+            'A2', 'Z']]
+        self.sumstats.columns = ['SNP', 'CHR', 'BP', 'A1', 'A2', 'Z']
 
         # re-index snps
         self.sumstats = self.sumstats.reset_index(drop=True)
@@ -168,6 +168,8 @@ class SumStats(object):
             else: filt.append(i)
         
         self.sumstats.loc[flip, 'Z'] *= -1.0
+        print filt
+        filtered = self.sumstats.loc[filt,:]
         self.sumstats = self.sumstats.drop(filt)
 
         # re-index snps
@@ -175,7 +177,8 @@ class SumStats(object):
 
         logging.info('{} SNPs left after filtering'\
             .format(self.sumstats.shape[0]))
-
+        
+        return filtered
 
     def get_locus(self, start, stop):
         """
